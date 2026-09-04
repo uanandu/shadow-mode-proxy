@@ -1,0 +1,9 @@
+{
+    "name": "shadow-mode-proxy",
+    "description": "see what a risky tool call would do before it runs",
+    "version": "0.1.0",
+    "author": {
+        "name": "Ananda Narayanan Udayakumar"
+    },
+    "license": "MIT"
+}
