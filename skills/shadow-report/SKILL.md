@@ -1,6 +1,6 @@
 ---
 name: shadow-report
-description: Reports a summary of what the shadow mode has blocked so far, read live from shadow-log.jsonl (a project-wide, cross-session log). Call this BEFORE answeing any questions like "what would you have done differently", "what would have happened", "what has shadow mode blocked", "show me the shadow report", "what got blocked" etc - never answer these from memor.reasoning, the log is the only source of truth.
+description: Reports a summary of what the shadow mode has blocked so far, read live from the project root (shadow-log.jsonl at the top level of CLAUDE_PROJECT_DIR). Call this BEFORE answering any questions like "what would you have done differently", "what would have happened", "what has shadow mode blocked", "show me the shadow report", "what got blocked" etc - never answer these from memory/reasoning, the log is the only source of truth.
 ---
 
 Read shadow-log.jsonl in the current directory (if it doesnt exist, say that nothing has been logged yet)

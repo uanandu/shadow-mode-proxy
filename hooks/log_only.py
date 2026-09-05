@@ -11,10 +11,10 @@ def main():
     # append-only audit trail, one JSON object per tool call
     with open(LOG_PATH, "a") as f:
         record = {
-            "ts": datetime.datetime.utcnow().isoformat() + "Z",
+            "ts": datetime.datetime.now(datetime.timezone.utc).isoformat() + "Z",
             "tool_name": event.get("tool_name"),
             "tool_input": event.get("tool_input"),
-             "decision": "allow",
+            "decision": "allow",
             "source": os.path.basename(__file__),
         }
         f.write(json.dumps(record) + "\n")
@@ -28,6 +28,6 @@ def main():
             "permissionDecisionReason": "logging only - not yet blocking anything",
         }
     }))
-    
+
 if __name__ == "__main__":
     main()
