@@ -2,8 +2,11 @@ import json, sys, os, datetime
 
 # For the ON/OFF switch
 PLUGIN_DATA = os.environ.get("CLAUDE_PLUGIN_DATA")
-print(f"PLUGIN_DATA")
 FLAG_PATH = os.path.join(PLUGIN_DATA, "shadow-mode.flag") if PLUGIN_DATA else None
+
+# Absolute Path to enable saving log in the project root regardless of the directory
+PROJECT_DIR = os.environ.get("CLAUDE_PROJECT_DIR", os.getcwd())
+LOG_PATH = os.path.join(PROJECT_DIR, "shadow-log.jsonl")
 
 def main():        
     # Claude sends tool call as JSON on stdin before it runs
@@ -26,6 +29,20 @@ def main():
     tool_name = event.get("tool_name")
     tool_input = event.get("tool_input")
     
+    # Never block operation when /shadow-mode is off.
+    # Also ${CLAUDE_PLUGIN_DATA}/shadow-mode.flag gets deleted 
+    target = json.dumps(tool_input)
+    
+    if FLAG_PATH and FLAG_PATH in target:
+        print(json.dumps({
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "allow",
+                "permissionDecisionReason": "shadow-mode control file - always allowed"
+            }
+        }))
+        return
+    
     # Record set for the shadow-log.jsonl
     record = {
         "ts": datetime.datetime.utcnow().isoformat() + "Z",
@@ -36,7 +53,7 @@ def main():
     }
     
     # Append the record in shadow-log.jsonl
-    with open("shadow-log.jsonl", "a") as f:
+    with open(LOG_PATH, "a") as f:
         f.write(json.dumps(record) + "\n")
     
     print(
