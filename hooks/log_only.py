@@ -1,4 +1,4 @@
-import json, sys, datetime
+import json, sys, os, datetime
 
 def main():
     # Claude sends tool call as JSON on stdin before it runs
@@ -10,6 +10,8 @@ def main():
             "ts": datetime.datetime.utcnow().isoformat() + "Z",
             "tool_name": event.get("tool_name"),
             "tool_input": event.get("tool_input"),
+             "decision": "allow",
+            "source": os.path.basename(__file__),
         }
         f.write(json.dumps(record) + "\n")
         
