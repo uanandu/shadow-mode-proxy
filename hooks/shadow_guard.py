@@ -8,14 +8,13 @@ FLAG_PATH = os.path.join(PLUGIN_DATA, "shadow-mode.flag") if PLUGIN_DATA else No
 PROJECT_DIR = os.environ.get("CLAUDE_PROJECT_DIR", os.getcwd())
 LOG_PATH = os.path.join(PROJECT_DIR, "shadow-log.jsonl")
 
-def main():        
+def main():   
     # Claude sends tool call as JSON on stdin before it runs
     event = json.load(sys.stdin)
     
     # Here we set the shadow mode off permission decision reason to Claude
     # No FLAG_PATH set or flag file is missing -> shadow mode is off -> allow tool, skip blocking logic and exit early
     if not FLAG_PATH or not os.path.exists(FLAG_PATH):
-        print(f"PLUGIN_DATA={PLUGIN_DATA!r} FLAG_PATH={FLAG_PATH!r}", file=sys.stderr)
         print(json.dumps({
             "hookSpecificOutput": {
                 "hookEventName": "PreToolUse",
@@ -45,7 +44,7 @@ def main():
     
     # Record set for the shadow-log.jsonl
     record = {
-        "ts": datetime.datetime.utcnow().isoformat() + "Z",
+        "ts": datetime.datetime.now(datetime.timezone.utc).isoformat() + "Z",
         "tool_name": tool_name,
         "tool_input": tool_input,
         "decision": "deny",
