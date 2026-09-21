@@ -8,6 +8,27 @@ FLAG_PATH = os.path.join(PLUGIN_DATA, "shadow-mode.flag") if PLUGIN_DATA else No
 PROJECT_DIR = os.environ.get("CLAUDE_PROJECT_DIR", os.getcwd())
 LOG_PATH = os.path.join(PROJECT_DIR, "shadow-log.jsonl")
 
+def is_control_file_write(tool_name: str, tool_input: dict, flag_path: str) -> bool:
+    # We implement 4 checks here
+    
+    # 1. Only Write or Edit are allowed
+    if tool_name not in ("Write", "Edit"):
+        return False
+        
+    # 2. Grab the file_path field
+    file_path = tool_input.get("file_path")
+    if not file_path or not flag_path:
+        return False
+    
+    # 3. Compare real paths to avoid symlink or '...' tricks
+    if os.path.realpath(file_path) != os.path.realpath(flag_path):
+        return False
+    
+    # 4. Validate the content is exactly "on" or "off"
+    # Write tool uses "content", Edit uses "new_string"
+    content = (tool_input.get("content") or tool_input.get("new_string") or "").strip()
+    return content in ("on", "off")
+
 def main():   
     # Claude sends tool call as JSON on stdin before it runs
     event = json.load(sys.stdin)
@@ -32,7 +53,7 @@ def main():
     # Also ${CLAUDE_PLUGIN_DATA}/shadow-mode.flag gets deleted 
     target = json.dumps(tool_input)
     
-    if FLAG_PATH and FLAG_PATH in target:
+    if is_control_file_write(tool_name, tool_input, FLAG_PATH):
         print(json.dumps({
             "hookSpecificOutput": {
                 "hookEventName": "PreToolUse",
