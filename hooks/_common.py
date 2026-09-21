@@ -22,12 +22,21 @@ GENERIC_ASSIGNMENT = re.compile(
     r')s?\b([\s=:]+)(\S+)'
 )
 
-# Redaction function to replace pattern with [REDACTED]
 def redact_text(input_text: str) -> str:
     for pattern in KNOWN_SECRET_FORMATS:
         input_text = pattern.sub("[REDACTED]", input_text)
     input_text = GENERIC_ASSIGNMENT.sub(r'\1\2\3[REDACTED]', input_text)
     return input_text
+
+# Recursively redact string leaves inside tool_input, preserving its shape
+def redact(value):
+    if isinstance(value, str):
+        return redact_text(value)
+    if isinstance(value, dict):
+        return {k: redact(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [redact(v) for v in value]
+    return value
 
 # Gitignore enforcement and ensuring that we have only one decision per call
 def correlation_id(event: dict) -> str:

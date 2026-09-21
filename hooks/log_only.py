@@ -4,6 +4,7 @@ import json, sys, os, datetime
 PROJECT_DIR = os.environ.get("CLAUDE_PROJECT_DIR", os.getcwd())
 LOG_PATH = os.path.join(PROJECT_DIR, "shadow-log.jsonl")
 
+
 def main():
     # Claude sends tool call as JSON on stdin before it runs
     event = json.load(sys.stdin)
