@@ -29,6 +29,17 @@ def is_control_file_write(tool_name: str, tool_input: dict, flag_path: str) -> b
     content = (tool_input.get("content") or tool_input.get("new_string") or "").strip()
     return content in ("on", "off")
 
+def deny(reason: str):
+    print(
+        json.dumps({
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "deny",
+                "permissionDecisionReason": reason
+                }
+            })
+        )
+
 def main():   
     # Claude sends tool call as JSON on stdin before it runs
     event = json.load(sys.stdin)
@@ -76,18 +87,13 @@ def main():
     with open(LOG_PATH, "a") as f:
         f.write(json.dumps(record) + "\n")
     
-    print(
-        json.dumps({
-            "hookSpecificOutput": {
-                "hookEventName": "PreToolUse",
-                "permissionDecision": "deny",
-                "permissionDecisionReason": (
-                    f"Shadow mode is on — {tool_name} was NOT run. "
-                    f"Logged to shadow-log.jsonl instead."
-                )
-            }
-        })
-    )
+    
     
 if __name__ == "__main__":
-    main()
+    if not PLUGIN_DATA:
+        deny("shadow mode unavailable: CLAUDE_PLUGIN_DATA not set")
+        sys.exit(0)
+    try:
+        main()
+    except Exception as e:
+        deny(f"Shadow mode error, denying by default: {e}")
